@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Web3 from 'web3'
 import * as contractData from './contracts/Forum.json';
-import { FormGroup, FormControl, ControlLabel, Button  } from 'react-bootstrap';
+import { Row, Col, Grid, Button  } from 'react-bootstrap';
+import { Offset } from './utils.js';
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
 
@@ -15,7 +16,7 @@ const forum = new web3.eth.Contract(abi, address, {gas: 10000000});
 
 class App extends Component {
     render() {
-        return <div> <Posts/> </div>;
+        return <Grid> <Posts/> </Grid>;
     }
 }
 
@@ -61,7 +62,12 @@ class Posts extends Component {
         return (
             <div>
             <Postbox onSubmit={this.handleSubmit}/>
-            { this.state.list.map((post, i) => <Post key={i} changePost={this.changePost} post={post}/> ) }
+            <Offset size={20}/>
+            { this.state.list.map((post, i) => 
+                <div>
+                <Post key={i} changePost={this.changePost} post={post}/>
+                <Offset size={20}/>
+                </div>) }
             </div>
         );
     }
@@ -80,15 +86,17 @@ class Postbox extends Component {
 
     onSubmit = (e) => {
         this.setState({input: ''});
-        this.props.onSubmit(e, this.input)
+        this.props.onSubmit(e, this.state.input)
     }
 
     render() {
-        return <form onSubmit={this.onSubmit}>
+        return <Row bsClass="pull-left">
+            <form onSubmit={this.onSubmit}>
             <h2>Make your post!</h2>
             <textarea name="textarea" value={this.state.input} style={{ height: 200, width:700 }} onChange={this.handleChange}></textarea>
             <div><Button type='submit'>Submit</Button></div>
         </form>
+        </Row>
     }
 }
 
@@ -103,13 +111,22 @@ class Post extends Component {
     }
 
     render() {
-        return (
-            <div>
-                <Arrows postid={this.props.post.id} votes={this.props.post.votes} changePost={this.changePost}/>
-                <div>{this.props.post.userid}</div>
-                <div>{this.props.post.content}</div>
-            </div>
-        )
+        return <Row className="post" style={{ 'background-color': 'white' }}>
+            <Col md={1} >
+                <Arrows 
+                postid={this.props.post.id} 
+                votes={this.props.post.votes} 
+                changePost={this.changePost}/>
+            </Col>
+            <Col md={11}>
+                <Offset size={2}/>
+                <h6><i>By: {this.props.post.userid}</i></h6>
+            </Col>
+            <Col md={1}/>
+            <Col md={11}>
+                <p>{this.props.post.content}</p>
+            </Col>
+        </Row>
     }
 }
 
@@ -156,7 +173,7 @@ class Arrows extends Component {
         var upcolor = (this.state.voteState === VoteState.up) ? "success" : "secondary";
         var downcolor = (this.state.voteState === VoteState.down) ? "danger" : "secondary";
         return (
-            <div>
+            <div class='text-center'>
             <Button bsStyle={upcolor} bsSize="xsmall" onClick={this.upvote}/>
             <div>{this.props.votes}</div>
             <Button bsStyle={downcolor} bsSize="xsmall" onClick={this.downvote}/>
