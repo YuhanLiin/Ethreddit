@@ -44,10 +44,9 @@ class Posts extends Component {
         await this.load();
     }
 
-    handleSubmit = async (e) => {
+    handleSubmit = async (e, input) => {
         e.preventDefault();
-        var txt = this.textInput.value
-        await forum.methods.post(txt).send({from: account});
+        await forum.methods.post(input).send({from: account});
         await this.load();
     }
 
@@ -61,16 +60,35 @@ class Posts extends Component {
     render() {
         return (
             <div>
-            <form onSubmit={this.handleSubmit}>
-                <FormGroup controlId="postText">
-                    <ControlLabel>Make your post!</ControlLabel>
-                    <FormControl componentClass='textarea' inputRef={input => this.textInput = input} placeholder='Enter text here.'/>
-                    <div><Button type='submit'>Submit</Button> </div>
-                </FormGroup>
-            </form>
+            <Postbox onSubmit={this.handleSubmit}/>
             { this.state.list.map((post, i) => <Post key={i} changePost={this.changePost} post={post}/> ) }
             </div>
         );
+    }
+}
+
+class Postbox extends Component {
+    props = {
+        onSubmit: null        
+    }
+
+    state = { input: '' }
+
+    handleChange = (e) => {
+        this.setState({input: e.target.value});
+    }
+
+    onSubmit = (e) => {
+        this.setState({input: ''});
+        this.props.onSubmit(e, this.input)
+    }
+
+    render() {
+        return <form onSubmit={this.onSubmit}>
+            <h2>Make your post!</h2>
+            <textarea name="textarea" value={this.state.input} style={{ height: 200, width:700 }} onChange={this.handleChange}></textarea>
+            <div><Button type='submit'>Submit</Button></div>
+        </form>
     }
 }
 
