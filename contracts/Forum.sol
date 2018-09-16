@@ -18,7 +18,6 @@ contract Forum {
     enum VoteStatus {NONE, UP, DOWN}
 
     struct User {
-        address addr;
         mapping(uint => VoteStatus) postVotes;
     }
 
@@ -28,14 +27,6 @@ contract Forum {
 
     constructor() public {
 
-    }
-
-    modifier userExists() {
-        require(users[msg.sender].addr != 0); _;
-    }
-
-    modifier userNotExist() {
-        require(users[msg.sender].addr == 0); _;
     }
 
     modifier postExists(uint postid) {
@@ -62,12 +53,6 @@ contract Forum {
         require(users[msg.sender].postVotes[postid] == VoteStatus.DOWN); _;
     }
 
-    function register() userNotExist public {
-        address addr = msg.sender;
-        users[addr] = User({addr: addr});
-        userCount++;
-    }
-
     function voteDiff(uint postid) internal view returns(int) {
         if (users[msg.sender].postVotes[postid] == VoteStatus.NONE) {
             return 1;
@@ -76,36 +61,36 @@ contract Forum {
         }
     }
 
-    function upvote(uint postid) userExists postExists(postid) notUpvoted(postid) public {
+    function upvote(uint postid) postExists(postid) notUpvoted(postid) public {
         posts[postid].votes += voteDiff(postid);
         users[msg.sender].postVotes[postid] = VoteStatus.UP;
     }
 
-    function unUpvote(uint postid) userExists postExists(postid) isUpvoted(postid) public {
+    function unUpvote(uint postid) postExists(postid) isUpvoted(postid) public {
         posts[postid].votes--;
         users[msg.sender].postVotes[postid] = VoteStatus.NONE;
     }
 
-    function downvote(uint postid) userExists postExists(postid) notDownvoted(postid) public {
+    function downvote(uint postid) postExists(postid) notDownvoted(postid) public {
         posts[postid].votes -= voteDiff(postid);
         users[msg.sender].postVotes[postid] = VoteStatus.DOWN;
     }
 
-    function unDownvote(uint postid) userExists postExists(postid) isDownvoted(postid) public {
+    function unDownvote(uint postid) postExists(postid) isDownvoted(postid) public {
         posts[postid].votes++;
         users[msg.sender].postVotes[postid] = VoteStatus.NONE;
     }
 
-    function post(string content) userExists public {
+    function post(string content) public {
         posts.length++;
         Post storage newPost = posts[posts.length - 1];
         newPost.userid = msg.sender;
         newPost.content = content;
         newPost.id = posts.length - 1;
-        upvote(posts.length - 1);
+        //upvote(posts.length - 1);
     }
 
-    function comment(uint postid, string content) userExists postExists(postid) public {
+    function comment(uint postid, string content) postExists(postid) public {
         Comment[] storage comments = posts[postid].comments;
         comments.push(Comment({id: comments.length, userid: msg.sender, content: content}));
     }
