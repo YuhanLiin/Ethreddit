@@ -95,6 +95,10 @@ contract Forum {
         comments.push(Comment({id: comments.length, userid: msg.sender, content: content}));
     }
 
+    function getPostVotes(uint postid) postExists(postid) public view returns(uint) {
+        return uint(users[msg.sender].postVotes[postid]);
+    }
+
     function getPostCount() public view returns(uint) {
         return posts.length;
     }

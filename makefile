@@ -7,4 +7,5 @@ ethreddit/src/contracts/Forum.json: build/contracts/Forum.json
 	
 build/contracts/Forum.json: contracts/Forum.sol
 	truffle compile
+	truffle migrate
 

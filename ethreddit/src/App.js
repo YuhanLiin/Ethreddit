@@ -5,13 +5,13 @@ import { FormGroup, FormControl, ControlLabel, Button  } from 'react-bootstrap';
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
 
-const address = '0x028a8b5dcb2ab89ef14cf594a7f8401af68ab26d';
+const address = '0x8c3e1af2b08df151163f4b3bcc2cbf78d97dd850';
 
-const account = '0xe994010444c5f37dccf67ec5a2e47c2e75068403';
+const account = '0xf00c23192979e22c760def3fb9ccb463556e2e35';
 
 const abi = contractData.abi;
 
-const forum = new web3.eth.Contract(abi, address);
+const forum = new web3.eth.Contract(abi, address, {gas: 10000000});
 
 class App extends Component {
     render() {
@@ -95,6 +95,8 @@ class Post extends Component {
     }
 }
 
+var VoteState = {none: '0', up: '1', down: '2'}
+
 class Arrows extends Component {
     props = {
         postid: -1,
@@ -102,22 +104,44 @@ class Arrows extends Component {
         changePost: null
     }
 
+    state = {
+        voteState: 0
+    }
+
+    updateVoteState = async () => {
+        this.setState({voteState: await forum.methods.getPostVotes(this.props.postid).call({from: account})});
+    }
+
+    componentWillMount = async () => await this.updateVoteState();
+
     upvote = async () => {
-        await forum.methods.upvote(this.props.postid).send({from: account});
+        if (this.state.voteState === VoteState.up) {
+            await forum.methods.unUpvote(this.props.postid).send({from: account});
+        } else {
+            await forum.methods.upvote(this.props.postid).send({from: account});
+        }
+        await this.updateVoteState();
         this.props.changePost();
     }
 
     downvote = async () => {
-        await forum.methods.downvote(this.props.postid).send({from: account});
+        if (this.state.voteState === VoteState.down) {
+            await forum.methods.unDownvote(this.props.postid).send({from: account});
+        } else {
+            await forum.methods.downvote(this.props.postid).send({from: account});
+        }
+        await this.updateVoteState();
         this.props.changePost();
     }
 
     render() {
+        var upcolor = (this.state.voteState === VoteState.up) ? "success" : "secondary";
+        var downcolor = (this.state.voteState === VoteState.down) ? "danger" : "secondary";
         return (
             <div>
-            <Button bsStyle="success" bsSize="xsmall" onClick={this.upvote}/>
+            <Button bsStyle={upcolor} bsSize="xsmall" onClick={this.upvote}/>
             <div>{this.props.votes}</div>
-            <Button bsStyle="danger" bsSize="xsmall" onClick={this.downvote}/>
+            <Button bsStyle={downcolor} bsSize="xsmall" onClick={this.downvote}/>
             </div>
         );
     }
